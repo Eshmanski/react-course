@@ -13,7 +13,6 @@ class Layout extends Component {
   }
 
   toggleMenuHandler = () => {
-    console.log('1')
     this.setState({
       menu: !this.state.menu
     });
