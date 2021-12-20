@@ -4,6 +4,7 @@ import Input from '../../components/UI/Input/Input';
 import Select from '../../components/UI/Select/Select';
 import  { createControl, validate, validateForm } from '../../form/formFramework';
 import Auxiliary from '../../hoc/Auxiliary/Auxiliary';
+import axios from '../../axios/axios-quiz';
 import classes from './QuizCreater.module.css';
 
 function createOptionControl(number) {
@@ -38,6 +39,7 @@ export default class QuizCreater extends Component {
       formControls: createFormControls(),
     }
   }
+
   submitHandler(event) {
     event.preventDefault();
   }
@@ -54,7 +56,7 @@ export default class QuizCreater extends Component {
       question: question.value,
       id: index,
       rightAnswerId: this.state.rightAnswerId,
-      answer: [
+      answers: [
         {text: option1.value, id: option1.id},
         {text: option2.value, id: option2.id},
         {text: option3.value, id: option3.id},
@@ -72,10 +74,27 @@ export default class QuizCreater extends Component {
     });
   }
 
-  createQuizHandler = event => {
+  createQuizHandler = async event => {
     event.preventDefault();
 
-    console.log(this.state)
+    try {
+      await axios.post('/quizes.json', JSON.stringify(this.state.quiz));
+      
+      this.setState({
+        quiz: [],
+        isFormValid: false,
+        rightAnswerId: 1,
+        formControls: createFormControls(),
+      });
+    } catch(e) {
+      console.log(e);
+    }
+
+    // axios.post('https://quiz-75660-default-rtdb.europe-west1.firebasedatabase.app/quizes.json', JSON.stringify(this.state.quiz))
+    //   .then(res => {
+    //     console.log(res);
+    //   })
+    //   .catch(error => console.log(error));
   }
 
   changeHandler = (value, controlName) => {
@@ -122,6 +141,27 @@ export default class QuizCreater extends Component {
     });
   }
 
+  renderAddedQuestions() {
+    if (this.state.quiz.length) {
+      const questionsList = this.state.quiz.map((quizItem, index) => {
+        return (
+          <div className={classes.QuizItem} key={index}>
+            {index + 1}. {quizItem.question}
+          </div>
+        );
+      });
+
+      return (
+        <Auxiliary>
+          <hr/>
+          { questionsList }
+        </Auxiliary>
+      );
+    }
+
+    return null;
+  }
+
   render() {
     const select = <Select
       label="Выберите правильный ответ"
@@ -159,9 +199,12 @@ export default class QuizCreater extends Component {
               onClick={this.createQuizHandler}
               disabled={this.state.quiz.length === 0}
             >
-              Добавить вопрос
+              Создать тест
             </Button>
+
           </form>
+         
+          { this.renderAddedQuestions() }
         </div>
       </div>
     );
