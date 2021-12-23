@@ -4,7 +4,8 @@ import Input from '../../components/UI/Input/Input';
 import Select from '../../components/UI/Select/Select';
 import  { createControl, validate, validateForm } from '../../form/formFramework';
 import Auxiliary from '../../hoc/Auxiliary/Auxiliary';
-import axios from '../../axios/axios-quiz';
+import { connect } from 'react-redux';
+import { createQuizQuestion, finishCreateQuiz } from '../../store/actions/create';
 import classes from './QuizCreater.module.css';
 
 function createOptionControl(number) {
@@ -28,12 +29,11 @@ function createFormControls() {
   };
 }
 
-export default class QuizCreater extends Component {
+class QuizCreater extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      quiz: [],
       isFormValid: false,
       rightAnswerId: 1,
       formControls: createFormControls(),
@@ -47,14 +47,11 @@ export default class QuizCreater extends Component {
   addQuestionHandler = event => {
     event.preventDefault();
 
-    const quiz = this.state.quiz.concat();
-    const index = quiz.length + 1;
-
     const {question, option1, option2, option3, option4} = this.state.formControls;
 
     const questionItem = {
       question: question.value,
-      id: index,
+      id: this.props.quiz.length + 1,
       rightAnswerId: this.state.rightAnswerId,
       answers: [
         {text: option1.value, id: option1.id},
@@ -64,37 +61,26 @@ export default class QuizCreater extends Component {
       ]
     };
 
-    quiz.push(questionItem);
+    this.props.createQuizQuestion(questionItem);
 
     this.setState({
-      quiz,
       isFormValid: false,
       rightAnswerId: 1,
       formControls: createFormControls(),
     });
   }
 
-  createQuizHandler = async event => {
+  createQuizHandler = event => {
     event.preventDefault();
 
-    try {
-      await axios.post('/quizes.json', JSON.stringify(this.state.quiz));
-      
-      this.setState({
-        quiz: [],
-        isFormValid: false,
-        rightAnswerId: 1,
-        formControls: createFormControls(),
-      });
-    } catch(e) {
-      console.log(e);
-    }
+    this.setState({
+      quiz: [],
+      isFormValid: false,
+      rightAnswerId: 1,
+      formControls: createFormControls(),
+    });
 
-    // axios.post('https://quiz-75660-default-rtdb.europe-west1.firebasedatabase.app/quizes.json', JSON.stringify(this.state.quiz))
-    //   .then(res => {
-    //     console.log(res);
-    //   })
-    //   .catch(error => console.log(error));
+    this.props.finishCreateQuiz();
   }
 
   changeHandler = (value, controlName) => {
@@ -142,8 +128,8 @@ export default class QuizCreater extends Component {
   }
 
   renderAddedQuestions() {
-    if (this.state.quiz.length) {
-      const questionsList = this.state.quiz.map((quizItem, index) => {
+    if (this.props.quiz.length) {
+      const questionsList = this.props.quiz.map((quizItem, index) => {
         return (
           <div className={classes.QuizItem} key={index}>
             {index + 1}. {quizItem.question}
@@ -197,7 +183,7 @@ export default class QuizCreater extends Component {
             <Button
               type="succes"
               onClick={this.createQuizHandler}
-              disabled={this.state.quiz.length === 0}
+              disabled={this.props.quiz.length === 0}
             >
               Создать тест
             </Button>
@@ -210,3 +196,18 @@ export default class QuizCreater extends Component {
     );
   }
 }
+
+function mapStateToProps(state) {
+  return {
+    quiz: state.create.quiz
+  };
+}
+
+function mapDispatchToProps(dispatch) {
+  return {
+    createQuizQuestion: item => dispatch(createQuizQuestion(item)),
+    finishCreateQuiz: () => dispatch(finishCreateQuiz())
+  };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(QuizCreater);
