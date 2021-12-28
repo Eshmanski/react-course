@@ -1,59 +1,30 @@
-import React, { Component } from 'react';
-import { Route, Switch, Redirect, withRouter } from 'react-router-dom';
-import Layout from './hoc/Layout/Layout';
-import Quiz from './containers/Quiz/Quiz';
-import QuizList from './containers/QuizList/QuizList';
-import QuizCreater from './containers/QuizCreater/QuizCreater';
-import Auth from './containers/Auth/Auth';
-import { connect } from 'react-redux';
-import Logout from './components/Logout/Logout';
-import { autoLogin } from './store/actions/auth';
+import Navbar from './components/Navbar';
+import React from 'react';
+import Home from './pages/Home';
+import { Route, Switch } from 'react-router-dom'; 
+import About from './pages/About';
+import Profile from './pages/Profile';
+import Alert from './components/Alert';
+import AlertState from './context/alert/AlertState';
+import GithubState from './context/github/GithubState';
 
-class App extends Component {
-  componentDidMount() {
-    this.props.autoLogin();
-  }
+function App() {
+  return (
+    <GithubState>
+      <AlertState>
+        <Navbar />
+        <div className="container pt-4">
+          <Alert />
 
-  render() {
-    let routes = (
-      <Switch>
-        <Route path="/auth" component={Auth} />
-        <Route path="/quiz/:id" component={Quiz} />
-        <Route path="/" component={QuizList} />
-        <Redirect to='/' />
-      </Switch>
-    );
-
-    if (this.props.isAuthenticated) {
-      routes = (
-        <Switch>
-          <Route path="/quiz-creator" component={QuizCreater} />
-          <Route path="/quiz/:id" component={Quiz} />
-          <Route path="/logout" component={Logout} />
-          <Route path="/" exact component={QuizList} />
-          <Redirect to='/' />
-        </Switch>
-      );
-    }
-
-    return (
-      <Layout>
-        { routes }
-      </Layout>
-    );
-  }
+          <Switch>
+            <Route path="/" exact component={Home} />
+            <Route path="/about" component={About} />
+            <Route path="/profile/:name"  component={Profile} />
+          </Switch>
+        </div>
+      </AlertState>
+    </GithubState>
+  );
 }
 
-function mapStateToProps(state) {
-  return {
-    isAuthenticated: !!state.auth.token
-  };
-}
-
-function mapDispatchToProps(dispatch) {
-  return {
-    autoLogin: () => dispatch(autoLogin())
-  };
-}
-
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));
+export default App;
