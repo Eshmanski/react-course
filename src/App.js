@@ -1,59 +1,28 @@
-import React, { Component } from 'react';
-import { Route, Switch, Redirect, withRouter } from 'react-router-dom';
-import Layout from './hoc/Layout/Layout';
-import Quiz from './containers/Quiz/Quiz';
-import QuizList from './containers/QuizList/QuizList';
-import QuizCreater from './containers/QuizCreater/QuizCreater';
-import Auth from './containers/Auth/Auth';
-import { connect } from 'react-redux';
-import Logout from './components/Logout/Logout';
-import { autoLogin } from './store/actions/auth';
+import React from 'react'
+import Character from './Character'
 
-class App extends Component {
-  componentDidMount() {
-    this.props.autoLogin();
+const App = ({side}) => {
+  if (!side) {
+    side = 'light'
   }
 
-  render() {
-    let routes = (
-      <Switch>
-        <Route path="/auth" component={Auth} />
-        <Route path="/quiz/:id" component={Quiz} />
-        <Route path="/" component={QuizList} />
-        <Redirect to='/' />
-      </Switch>
-    );
+  const characters = [
+    {name: 'Люк Скайвокер', side: 'light'},
+    {name: 'Йода', side: 'light'},
+    {name: 'Обиван Кеноби', side: 'light'},
+    {name: 'Палпатин', side: 'dark'},
+    {name: 'Дарт Вэйдер', side: 'dark'}
+  ]
 
-    if (this.props.isAuthenticated) {
-      routes = (
-        <Switch>
-          <Route path="/quiz-creator" component={QuizCreater} />
-          <Route path="/quiz/:id" component={Quiz} />
-          <Route path="/logout" component={Logout} />
-          <Route path="/" exact component={QuizList} />
-          <Redirect to='/' />
-        </Switch>
-      );
-    }
+  const filteredChars = characters.filter(char => char.side === side)
 
-    return (
-      <Layout>
-        { routes }
-      </Layout>
-    );
-  }
+  return (
+    <ul>
+      {filteredChars.map((char, index) => (
+        <Character key={char.name + index} name={char.name} side={char.side} />
+      ))}
+    </ul>
+  )
 }
 
-function mapStateToProps(state) {
-  return {
-    isAuthenticated: !!state.auth.token
-  };
-}
-
-function mapDispatchToProps(dispatch) {
-  return {
-    autoLogin: () => dispatch(autoLogin())
-  };
-}
-
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));
+export default App
